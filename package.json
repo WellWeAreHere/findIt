@@ -1,0 +1,20 @@
+{
+  "name": "findit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "FindIt - Intelligent Campus Lost and Found Management System",
+  "scripts": {
+    "db:build-seed": "node database/seed/build-sql.js",
+    "db:setup": "node --env-file=.env.local database/setup.js",
+    "db:test": "node --env-file=.env.local --test --test-concurrency=1 \"database/tests/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "mongodb": "^7.8.0",
+    "mysql2": "^3.24.6"
+  }
+}

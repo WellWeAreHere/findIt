@@ -1,0 +1,111 @@
+%% FindIt ER diagram (Mermaid). Render at https://mermaid.live or in VS Code / GitHub.
+erDiagram
+  USERS ||--o{ REPORTS : files
+  USERS ||--o{ CLAIMS : submits
+  USERS |o--o{ CLAIMS : reviews
+  USERS |o--o{ MATCHES : reviews
+  USERS ||--o{ NOTIFICATIONS : receives
+  CATEGORIES ||--o{ ITEMS : groups
+  BUILDINGS ||--o{ LOCATIONS : contains
+  ITEMS ||--o{ REPORTS : "is type of"
+  LOCATIONS ||--o{ REPORTS : "occurred at"
+  LOCATIONS |o--o{ REPORTS : "held in custody at"
+  REPORTS ||--o{ CLAIMS : "claimed (FOUND)"
+  REPORTS |o--o{ CLAIMS : "evidence (LOST)"
+  REPORTS ||--o{ MATCHES : "lost side"
+  REPORTS ||--o{ MATCHES : "found side"
+  REPORTS |o--o{ NOTIFICATIONS : "about"
+
+  USERS {
+    int user_id PK
+    varchar name
+    varchar email UK
+    varchar srn UK
+    char password_hash
+    enum role
+    bool is_active
+    datetime created_at
+  }
+  CATEGORIES {
+    int category_id PK
+    varchar category_name UK
+    varchar description
+  }
+  ITEMS {
+    int item_id PK
+    int category_id FK
+    varchar item_name
+  }
+  BUILDINGS {
+    int building_id PK
+    varchar building_name UK
+    enum zone
+  }
+  LOCATIONS {
+    int location_id PK
+    int building_id FK
+    tinyint floor
+    varchar area
+  }
+  REPORTS {
+    int report_id PK
+    int user_id FK
+    int item_id FK
+    int location_id FK
+    int custody_location_id FK
+    enum report_type
+    varchar description
+    date report_date
+    enum status
+    enum mongo_sync_status
+    tinyint sync_attempts
+    datetime created_at
+    datetime updated_at
+  }
+  CLAIMS {
+    int claim_id PK
+    int report_id FK
+    int claimant_id FK
+    int lost_report_id FK
+    text claim_description
+    enum status
+    int reviewed_by FK
+    varchar review_note
+    datetime reviewed_at
+    datetime created_at
+    int approved_report_id "generated, UK"
+  }
+  MATCHES {
+    int match_id PK
+    int lost_report_id FK
+    int found_report_id FK
+    decimal description_score
+    decimal characteristics_score
+    decimal category_score
+    decimal location_score
+    decimal date_score
+    decimal match_score "generated"
+    json matched_attributes
+    enum match_status
+    varchar algorithm_version
+    int reviewed_by FK
+    datetime created_at
+  }
+  NOTIFICATIONS {
+    int notification_id PK
+    int user_id FK
+    int related_report_id FK
+    varchar message
+    enum notification_type
+    bool is_read
+    datetime created_at
+  }
+  STATUS_AUDIT_LOG {
+    bigint audit_id PK
+    enum entity_type
+    int entity_id
+    varchar old_status
+    varchar new_status
+    int changed_by
+    datetime changed_at
+  }
