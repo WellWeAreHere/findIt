@@ -520,22 +520,23 @@ Index: `{ report_id: 1, at: -1 }`. Shown as the "Activity" timeline on the item 
 **Link key:** MySQL `reports.report_id` ↔ Mongo `report_id` (unique index). There is no cross-database FK. The backend owns the relationship.
 
 ### 7.1 Write path: creating a report (consistency strategy)
-1. **MySQL transaction:**
-   - Run `SET @app_user_id`.
-   - `INSERT INTO reports (…, mongo_sync_status='PENDING')`.
-   - The trigger writes the audit row.
-   - `COMMIT`, which returns `report_id`.
-2. **MongoDB:** `updateOne({report_id}, {$set: …}, {upsert: true})` writes the details document. Because it is idempotent, retries are safe. It also appends a `CREATED` activity event.
-3. **Success:** `UPDATE reports SET mongo_sync_status='SYNCED'`, then run the matching engine.
-4. **Failure:** `UPDATE reports SET mongo_sync_status='FAILED', sync_attempts=sync_attempts+1`. The user still gets their report, which is visible with its MySQL summary and shown as "details syncing".
-5. **Reconciler (`syncService`):**
-   - Re-pushes PENDING/FAILED rows. It runs on server start, every 5 minutes (in-process timer), and from the admin "Re-sync" button. The raw payload of the failed write is kept in a small local retry file.
-   - Deletes **orphan** Mongo documents whose `report_id` no longer exists in MySQL.
-   - Rows with more than 5 attempts are flagged on the admin dashboard.
+1. **One MySQL transaction** (`reportService.create`):
+   - Run `SET @app_user_id` so the audit trigger knows who acted.
+   - `INSERT INTO reports (…)`, with `mongo_sync_status='PENDING'` by default. The trigger writes the audit row.
+   - `INSERT INTO mongo_outbox (report_id, 'UPSERT', payload)`, where the payload is the full MongoDB document as JSON (migration `07_sync_outbox.sql`).
+   - `COMMIT`. The report and the record of the MongoDB write it needs are now durable together.
+2. **MongoDB** (`syncService.pushReport`): `updateOne({report_id}, {$set: …}, {upsert: true})`. Because it is idempotent, retries are safe.
+3. **Success:** delete the outbox entry, `UPDATE reports SET mongo_sync_status='SYNCED'`, then run the matching engine.
+4. **Failure:** the outbox entry stays (attempts + 1, last_error) and the report is marked `FAILED`. The user still gets their report, visible with its MySQL summary and shown as "details syncing". **No data is lost**, because the payload is safe in the outbox.
+5. **Reconciler (`syncService.reconcile`):**
+   - Runs on server start (`instrumentation.js`), every 5 minutes, and from the admin "Re-sync" button (`POST /api/admin/sync`).
+   - Replays outbox entries in order.
+   - Deletes **orphan** MongoDB documents whose `report_id` no longer exists in MySQL.
+   - Reports MySQL rows that have no MongoDB document.
 
-Strategy name: **MySQL-first, outbox flag, idempotent upsert, eventual consistency for details**. MySQL is never rolled back because of a Mongo failure, since the authoritative record already exists.
+Strategy name: **MySQL-first transactional outbox with idempotent upserts (eventual consistency for details)**. MySQL is never rolled back because of a MongoDB failure, since the authoritative record already exists. Outbox rows are transient: they exist only until MongoDB has the data, so they don't duplicate item details.
 
-**Delete path:** MySQL `DELETE` happens first (matches cascade), then Mongo `deleteOne`. If the Mongo delete fails, the reconciler's orphan sweep removes the document later.
+**Delete path:** in one transaction, MySQL `DELETE` (matches cascade) plus an outbox `DELETE` entry; then MongoDB `deleteOne`. If MongoDB is down, the entry is replayed later, and the orphan sweep is a second safety net.
 
 ### 7.2 Read paths
 | Use case | Flow |

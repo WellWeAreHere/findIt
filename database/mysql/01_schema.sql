@@ -7,6 +7,7 @@
 -- =====================================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS mongo_outbox;
 DROP TABLE IF EXISTS status_audit_log;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS matches;

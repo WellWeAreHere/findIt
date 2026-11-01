@@ -16,6 +16,7 @@ const SQL_FILES = [
   '04_triggers.sql',
   '05_seed.sql',
   '06_alter_migration.sql',
+  '07_sync_outbox.sql',
 ];
 
 // Splits a MySQL script into statements, honouring DELIMITER directives
@@ -93,6 +94,23 @@ export async function setupDatabases({ mysqlDatabase, mongoDatabase, log = conso
   } finally {
     await conn.end();
     await mongo.close();
+  }
+
+  // Run the real matching engine over the seeded reports (including
+  // already-resolved ones, so admins see confirmed match history).
+  const { useMysqlDatabase, closeMysql } = await import('../src/lib/db/mysql.js');
+  const { useMongoDatabase, closeMongo } = await import('../src/lib/db/mongo.js');
+  await closeMysql();
+  await closeMongo();
+  useMysqlDatabase(mysqlDatabase);
+  useMongoDatabase(mongoDatabase);
+  const { rematchAll } = await import('../src/lib/services/matchingService.js');
+  try {
+    const m = await rematchAll({ includeResolved: true });
+    log(`  match  ${m.reports} reports scored, ${m.matches} matches stored, ${m.notifiedPairs} strong matches notified`);
+  } finally {
+    await closeMysql();
+    await closeMongo();
   }
 }
 

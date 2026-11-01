@@ -159,6 +159,7 @@ describe('generated columns', () => {
   test('match_score is derived from the weighted components; pairs are unique', async () => {
     await inRollback(async (c) => {
       await c.query('SET @app_user_id = 1');
+      await c.query('DELETE FROM matches WHERE lost_report_id = 52 AND found_report_id = 53'); // computed at setup
       await c.query('INSERT INTO matches (lost_report_id, found_report_id, description_score, characteristics_score, category_score, location_score, date_score, matched_attributes) VALUES (52, 53, 0.5, 1, 1, 0.3, 0.857, JSON_ARRAY(\'brand: oneplus\'))');
       const [[m]] = await c.query('SELECT match_id, match_score FROM matches WHERE lost_report_id = 52 AND found_report_id = 53');
       assert.equal(m.match_score, '70.57');

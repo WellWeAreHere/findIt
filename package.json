@@ -5,16 +5,25 @@
   "type": "module",
   "description": "FindIt - Intelligent Campus Lost and Found Management System",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "db:build-seed": "node database/seed/build-sql.js",
     "db:setup": "node --env-file=.env.local database/setup.js",
-    "db:test": "node --env-file=.env.local --test --test-concurrency=1 \"database/tests/*.test.js\""
+    "db:test": "node --env-file=.env.local --test --test-concurrency=1 \"database/tests/*.test.js\"",
+    "test:api": "node --env-file=.env.local --test --test-concurrency=1 \"tests/*.test.js\""
   },
   "engines": {
     "node": ">=20.6"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "jose": "^6.1.0",
     "mongodb": "^7.8.0",
-    "mysql2": "^3.24.6"
+    "mysql2": "^3.24.6",
+    "next": "^15.5.28",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zod": "^4.6.7"
   }
 }

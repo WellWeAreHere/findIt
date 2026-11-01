@@ -18,10 +18,11 @@ export function normalize(value) {
     .trim();
 }
 
-// Light stemming: plural "s"/"es" only, enough for bottle/bottles, key/keys.
-function stem(word) {
-  if (word.length > 4 && word.endsWith('es') && !word.endsWith('ses')) return word.slice(0, -2);
-  if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
+// Light plural stemming: boxes/watches/glasses -> box/watch/glass,
+// bottles/keys -> bottle/key. Enough to make singular and plural agree.
+export function stem(word) {
+  if (word.length > 4 && /(ss|x|z|ch|sh)es$/.test(word)) return word.slice(0, -2);
+  if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss') && !word.endsWith('us')) return word.slice(0, -1);
   return word;
 }
 
