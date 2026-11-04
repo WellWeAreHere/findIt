@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Brand: a deep campus blue */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe6fe;
+  --color-brand-200: #bfd3fe;
+  --color-brand-300: #93b4fd;
+  --color-brand-400: #608cfa;
+  --color-brand-500: #3b65f5;
+  --color-brand-600: #2546ea;
+  --color-brand-700: #1d35d7;
+  --color-brand-800: #1e2eae;
+  --color-brand-900: #1e2d89;
+  --color-brand-950: #171d53;
+
+  /* Semantic: lost items are warm, found items are green */
+  --color-lost-50: #fff7ed;
+  --color-lost-100: #ffedd5;
+  --color-lost-600: #c2410c;
+  --color-lost-700: #9a3412;
+  --color-found-50: #ecfdf5;
+  --color-found-100: #d1fae5;
+  --color-found-600: #059669;
+  --color-found-700: #047857;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(15 23 42 / 0.06), 0 12px 28px -8px rgb(15 23 42 / 0.18);
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-slate-50 text-slate-800 antialiased; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
+  ::selection { @apply bg-brand-100 text-brand-900; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-6xl px-4 sm:px-6; }
+  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-card; }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+  .input {
+    @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900
+      placeholder:text-slate-400 shadow-sm transition
+      focus:border-brand-500 focus:ring-4 focus:ring-brand-100 focus:outline-none
+      disabled:cursor-not-allowed disabled:bg-slate-100;
+  }
+  .input-error { @apply border-rose-400 focus:border-rose-500 focus:ring-rose-100; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-up { animation: fade-up 0.35s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up { animation: none; }
+}

@@ -53,7 +53,7 @@ export const recentActivity = (limit = 15) => query(
           CASE a.entity_type
             WHEN 'REPORT' THEN (SELECT CONCAT(i.item_name, ' (', r.report_type, ')') FROM reports r JOIN items i ON i.item_id = r.item_id WHERE r.report_id = a.entity_id)
             WHEN 'CLAIM'  THEN (SELECT CONCAT('Claim on ', i.item_name) FROM claims c JOIN reports r ON r.report_id = c.report_id JOIN items i ON i.item_id = r.item_id WHERE c.claim_id = a.entity_id)
-            ELSE CONCAT('Match #', a.entity_id)
+            ELSE (SELECT CONCAT('Match: ', i.item_name) FROM matches m JOIN reports r ON r.report_id = m.lost_report_id JOIN items i ON i.item_id = r.item_id WHERE m.match_id = a.entity_id)
           END AS subject
    FROM status_audit_log a
    LEFT JOIN users u ON u.user_id = a.changed_by

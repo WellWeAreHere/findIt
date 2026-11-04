@@ -1,6 +1,6 @@
 # FindIt — Phase 1: Requirements, Architecture & Database Design
 
-> Status: **DRAFT FOR REVIEW**. No code is written until this design is approved.
+> Status: **APPROVED AND IMPLEMENTED**. Implementation notes that changed the original draft are marked inline (e.g. the outbox in §7.1).
 
 ---
 

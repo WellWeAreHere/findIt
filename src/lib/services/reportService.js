@@ -172,9 +172,10 @@ export async function detail(viewer, reportId) {
   ]);
   const isOwner = viewer?.user_id === card.user_id;
   const canSeeMatches = isOwner || isAdmin(viewer);
-  const [matchList, claimList] = await Promise.all([
+  const [matchList, claimList, linkedClaims] = await Promise.all([
     canSeeMatches ? matchingService.forReport(reportId) : null,
     canSeeMatches ? claims.forReport(reportId) : null,
+    isOwner || isAdmin(viewer) ? reports.countClaims(reportId) : null,
   ]);
 
   let claimContext = null;
@@ -201,6 +202,7 @@ export async function detail(viewer, reportId) {
     matchCount: canSeeMatches ? matchList.length : undefined,
     claims: claimList,
     isOwner,
+    canDelete: linkedClaims === 0,
     claimContext,
   };
 }
