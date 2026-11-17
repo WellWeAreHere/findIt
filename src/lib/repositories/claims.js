@@ -27,8 +27,10 @@ export async function withdraw(conn, claimId, claimantId) {
 export const forClaimant = (userId) => query(
   `SELECT c.claim_id, c.status, c.claim_description, c.review_note, c.created_at, c.reviewed_at,
           c.lost_report_id, rc.report_id, rc.item_name, rc.category_name, rc.building_name,
-          rc.area, rc.report_date, rc.custody_location
+          rc.area, rc.report_date, rc.custody_location,
+          CASE WHEN c.status = 'APPROVED' THEN finder.email ELSE NULL END AS finder_email
    FROM claims c JOIN v_report_card rc ON rc.report_id = c.report_id
+   JOIN users finder ON finder.user_id = rc.user_id
    WHERE c.claimant_id = ?
    ORDER BY c.created_at DESC`,
   [userId],
@@ -36,7 +38,7 @@ export const forClaimant = (userId) => query(
 
 // Claims made on items a student found.
 export const onFinderReports = (userId) => query(
-  `SELECT c.claim_id, c.status, c.created_at, c.reviewed_at, rc.report_id, rc.item_name,
+  `SELECT c.claim_id, c.status, c.claim_description, c.lost_report_id, c.created_at, c.reviewed_at, rc.report_id, rc.item_name,
           u.name AS claimant_name
    FROM claims c
    JOIN v_report_card rc ON rc.report_id = c.report_id

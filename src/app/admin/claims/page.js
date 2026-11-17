@@ -44,7 +44,7 @@ export default function AdminClaimsPage() {
   }, {}));
 
   return (
-    <AdminShell title="Claim review" subtitle="Approving a claim runs one database transaction: claim, item status, competing claims and notifications change together.">
+    <AdminShell title="Claim overview" subtitle="The person who found the item reviews and decides each claim.">
       {flash && <Alert type="success" className="mb-6">{flash}</Alert>}
       {error ? <LoadError error={error} onRetry={reload} /> : loading && !data ? <Skeleton className="h-96" /> : (
         <div className="space-y-8">
@@ -72,8 +72,7 @@ export default function AdminClaimsPage() {
                       <p className="mt-2 text-xs text-slate-400">Claim #{c.claim_id} · waiting {c.hours_waiting < 48 ? `${c.hours_waiting} h` : `${Math.round(c.hours_waiting / 24)} days`}</p>
                     </div>
                     <div className="flex items-start gap-2 md:flex-col">
-                      <Button variant="success" size="sm" icon="check" onClick={() => openDecision(c, 'approve')}>Approve</Button>
-                      <Button variant="secondary" size="sm" icon="x" onClick={() => openDecision(c, 'reject')}>Reject</Button>
+                      <span className="text-sm text-slate-500">Waiting for finder</span>
                     </div>
                   </li>
                 ))}

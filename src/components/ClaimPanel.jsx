@@ -21,7 +21,7 @@ export default function ClaimPanel({ reportId, context, onClaimed }) {
           <p className="font-semibold text-slate-900">Your claim</p>
           <StatusBadge status={c.status} />
         </div>
-        <p className="mt-2 text-sm text-slate-500">Submitted {formatDate(c.created_at)}. {c.status === 'PENDING' && 'An admin will verify it soon.'}</p>
+        <p className="mt-2 text-sm text-slate-500">Submitted {formatDate(c.created_at)}. {c.status === 'PENDING' && 'The finder will review it.'}</p>
         <Link href="/claims" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
           View my claims <Icon name="arrowRight" className="h-4 w-4" />
         </Link>
@@ -50,7 +50,7 @@ export default function ClaimPanel({ reportId, context, onClaimed }) {
     return (
       <div className="card bg-gradient-to-br from-brand-50 to-white p-5">
         <p className="font-semibold text-slate-900">Is this yours?</p>
-        <p className="mt-1 text-sm text-slate-600">Submit a claim with details only the owner would know. An admin will verify it before handover.</p>
+        <p className="mt-1 text-sm text-slate-600">Submit a claim with details only the owner would know. The finder will review it.</p>
         <Button className="mt-4 w-full" icon="hand" onClick={() => setOpen(true)}>Claim this item</Button>
       </div>
     );

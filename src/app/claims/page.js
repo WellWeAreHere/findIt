@@ -33,6 +33,19 @@ export default function ClaimsPage() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(null);
 
+  async function decide(claim, decision) {
+    setBusy(true);
+    setActionError(null);
+    try {
+      await api(`/api/claims/${claim.claim_id}/decision`, { method: 'POST', body: { decision } });
+      reload();
+    } catch (err) {
+      setActionError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function withdraw() {
     setBusy(true);
     setActionError(null);
@@ -50,6 +63,7 @@ export default function ClaimsPage() {
   return (
     <div className="container-page max-w-4xl space-y-6 py-10">
       <PageHeader eyebrow="Claims" title="Ownership claims" subtitle="Track claims you made, and claims on items you found." />
+      {actionError && !withdrawing && <Alert type="error">{actionError.message}</Alert>}
       <Tabs value={tab} onChange={setTab} tabs={[
         { value: 'mine', label: 'My claims', count: data?.mine.length },
         { value: 'incoming', label: 'On items I found', count: data?.incoming.length },
@@ -70,8 +84,8 @@ export default function ClaimsPage() {
                 <div className="mt-4"><ClaimProgress status={c.status} /></div>
                 <blockquote className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">“{c.claim_description}”</blockquote>
                 {c.status === 'APPROVED' && (
-                  <Alert type="success" className="mt-4" title="Approved: collect your item">
-                    {c.custody_location ? <>Pick it up from <strong>{c.custody_location}</strong>.</> : 'Contact the Lost & Found desk in the Administrative Block.'}
+                  <Alert type="success" className="mt-4" title="Claim approved">
+                    Contact the finder: <a className="font-semibold underline" href={`mailto:${c.finder_email}`}>{c.finder_email}</a>.
                     {c.review_note && <span className="block text-emerald-700">Note: {c.review_note}</span>}
                   </Alert>
                 )}
@@ -94,11 +108,19 @@ export default function ClaimsPage() {
                 <Link href={`/items/${c.report_id}`} className="font-semibold text-slate-900 hover:text-brand-700">{c.item_name}</Link>
                 <p className="text-sm text-slate-500">Claimed by {c.claimant_name} · {timeAgo(c.created_at)}</p>
               </div>
-              <StatusBadge status={c.status} />
+              <div className="space-y-2">
+                <StatusBadge status={c.status} />
+                <p className="text-sm text-slate-700">{c.claim_description}</p>
+                {c.lost_report_id && <Link className="text-sm text-brand-600 underline" href={`/items/${c.lost_report_id}`}>View linked lost report</Link>}
+                {c.status === 'PENDING' && <div className="flex gap-2">
+                  <Button type="button" size="sm" loading={busy} onClick={() => decide(c, 'approve')}>Yes, approve</Button>
+                  <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => decide(c, 'reject')}>No, reject</Button>
+                </div>}
+              </div>
             </li>
           ))}
         </ul>
-      ) : <EmptyState icon="shield" title="No claims on your found items">If someone claims an item you reported, an admin verifies it and you'll be notified.</EmptyState>}
+      ) : <EmptyState icon="shield" title="No claims on your found items">If someone claims an item you reported, you can review it here.</EmptyState>}
 
       <Dialog open={Boolean(withdrawing)} onClose={() => setWithdrawing(null)} title="Withdraw this claim?"
         footer={<>
